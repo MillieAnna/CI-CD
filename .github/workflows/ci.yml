@@ -1,24 +1,27 @@
 name: iOS CI
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+on: [push, pull_request]
 
 jobs:
   build:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
       - name: Set up Xcode
         run: sudo xcode-select -s /Applications/Xcode_14.2.app
 
-      - name: Build the app
-        run: xcodebuild -scheme WeatheryApp -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 14' build
+      - name: Install dependencies
+        run: |
+          brew install cocoapods || true
+          pod install || true
 
-      - name: Run tests (if any)
-        run: xcodebuild test -scheme WeatheryApp -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 14'
+      - name: Build project
+        run: |
+          xcodebuild -scheme WeatheryApp -destination 'platform=iOS Simulator,name=iPhone 14' clean build CODE_SIGNING_ALLOWED=NO
+
+      - name: Run tests
+        run: |
+          xcodebuild test -scheme WeatheryApp -destination 'platform=iOS Simulator,name=iPhone 14'
